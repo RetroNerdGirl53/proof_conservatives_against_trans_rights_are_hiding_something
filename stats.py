@@ -110,7 +110,7 @@ def report_regression(df):
     print("State count:", len(df))
     print(f"Slope: {slope:.3f} points of fetish-interest per 1% more GOP vote share")
     print(f"R-squared: {r_value ** 2:.4f}")
-    print(f"P-value: {p_value:.4f}")
+    print(f"P-value: {p_value:.4f} under .05 is statistically significant, not chance, over is statistically insignificant")
     print(f"Std error: {std_err:.3f}")
     print("\nState-by-state summary:")
     print(df[["state", "gop_pct", "interest"]].head(10).to_string(index=False))
