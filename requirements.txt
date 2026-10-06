@@ -1,0 +1,8 @@
+lxml>=4.9
+matplotlib>=3.7
+pandas>=2.0
+pytrends>=4.9.2
+requests>=2.31
+scipy>=1.11
+seaborn>=0.13
+urllib3>=2.0
