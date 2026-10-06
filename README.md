@@ -10,6 +10,9 @@ I began this with a purpose of making my own version of data science visualizati
 others i have seen on the same topic, but they used closed data like that from pornhub. My goal was to reproduce it to
 some level or another with open and readily accessible data and code. 
 
+Disclosures on dumbass shit i did:
+apparently somehow i lost the "porn" part of the search term in *trans slur here* porn. I added it back to the code and the visuals are strikingly similar. That tells a whole other story about how we are seen by people who use these slurs.
+
 The Future Of This Project:
 I have requested more specific data from some of
 the porn sites - pornhub specifically - but have not received a reply yet. Should i get access to it, and if they will
