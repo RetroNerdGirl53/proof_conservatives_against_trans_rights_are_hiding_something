@@ -1,8 +1,10 @@
 # pip install pytrends pandas scipy matplotlib seaborn requests lxml
 
+import argparse
 import io
 import re
 import time
+from datetime import date
 
 import matplotlib
 matplotlib.use("Agg")
@@ -29,16 +31,31 @@ except Exception:
 
 KEYWORDS = ["shemale", "tranny", "femboy"]
 
+DEFAULT_YEARS = 10
+
+
+def build_timeframe(years):
+    end = date.today()
+    try:
+        start = end.replace(year=end.year - years)
+    except ValueError:
+        # Feb 29 has no counterpart in a non-leap year.
+        start = end.replace(year=end.year - years, day=28)
+    return f"{start:%Y-%m-%d} {end:%Y-%m-%d}"
+
 
 def normalize_state_name(value):
     state = str(value).strip()
-    state = re.sub(r"\s*\[\d+\]\s*$", "", state)
+    # Wikipedia stacks multiple footnote refs, e.g. "Delaware[513][511]".
+    state = re.sub(r"(?:\s*\[\d+\])+\s*$", "", state)
+    # A dagger marks states that split electoral votes by district.
+    state = state.rstrip(" †").strip()
     state = state.replace("D.C.", "District of Columbia")
     state = state.replace("Washington, D.C.", "District of Columbia")
     return state
 
 
-def get_trends_interest(keywords, timeframe="today 12-m"):
+def get_trends_interest(keywords, timeframe):
     pytrends = TrendReq(hl="en-US", tz=360, timeout=(10, 30), retries=2)
     all_data = []
 
@@ -97,8 +114,8 @@ def get_presidential_vote_share_by_state():
     raise ValueError("Could not find the 2024 presidential vote table on Wikipedia.")
 
 
-def build_analysis_frame():
-    interest_df = get_trends_interest(KEYWORDS)
+def build_analysis_frame(timeframe):
+    interest_df = get_trends_interest(KEYWORDS, timeframe)
     vote_df = get_presidential_vote_share_by_state()
     merged = vote_df.merge(interest_df, on="state", how="inner")
     merged = merged.sort_values("gop_pct").reset_index(drop=True)
@@ -118,7 +135,7 @@ def report_regression(df):
     return slope, r_value, p_value
 
 
-def plot_regression(df):
+def plot_regression(df, suffix, window):
     plt.figure(figsize=(8, 6))
     sns.regplot(
         data=df,
@@ -129,13 +146,13 @@ def plot_regression(df):
     )
     plt.xlabel("2024 GOP vote share (%)")
     plt.ylabel("Average Google Trends interest (0-100)")
-    plt.title("Trans-fetish search interest rises with state conservatism")
+    plt.title(f"Trans-fetish search interest rises with state conservatism\n({window})")
     plt.tight_layout()
-    plt.savefig("regression_plot.png", dpi=150)
+    plt.savefig(f"regression_plot_{suffix}.png", dpi=150)
     plt.close()
 
 
-def plot_boxplot(df):
+def plot_boxplot(df, suffix, window):
     df = df.copy()
     df["lean_group"] = pd.cut(
         df["gop_pct"],
@@ -149,13 +166,13 @@ def plot_boxplot(df):
     sns.stripplot(data=df, x="lean_group", y="interest", color="black", alpha=0.45, jitter=0.2)
     plt.xlabel("State political lean")
     plt.ylabel("Search interest")
-    plt.title("Search interest by conservative vs liberal state groups")
+    plt.title(f"Search interest by conservative vs liberal state groups\n({window})")
     plt.tight_layout()
-    plt.savefig("boxplot.png", dpi=150)
+    plt.savefig(f"boxplot_{suffix}.png", dpi=150)
     plt.close()
 
 
-def plot_state_bar_chart(df):
+def plot_state_bar_chart(df, suffix, window):
     sorted_df = df.sort_values("interest", ascending=False).reset_index(drop=True)
     norm = (sorted_df["gop_pct"] - sorted_df["gop_pct"].min()) / (sorted_df["gop_pct"].max() - sorted_df["gop_pct"].min() + 1e-9)
     colors = plt.cm.RdBu_r(norm)
@@ -164,19 +181,33 @@ def plot_state_bar_chart(df):
     plt.bar(sorted_df["state"], sorted_df["interest"], color=colors)
     plt.xticks(rotation=90)
     plt.ylabel("Average Google Trends interest")
-    plt.title("Search interest by state (redder = more conservative)")
+    plt.title(f"Search interest by state (redder = more conservative)\n({window})")
     plt.tight_layout()
-    plt.savefig("state_bar_chart.png", dpi=150)
+    plt.savefig(f"state_bar_chart_{suffix}.png", dpi=150)
     plt.close()
 
 
 def main():
-    df = build_analysis_frame()
+    parser = argparse.ArgumentParser(description="Correlate trans-related search interest with state conservatism.")
+    parser.add_argument(
+        "--years",
+        type=int,
+        default=DEFAULT_YEARS,
+        help=f"How many years of Google Trends data to pull (default: {DEFAULT_YEARS}).",
+    )
+    args = parser.parse_args()
+
+    timeframe = build_timeframe(args.years)
+    suffix = f"{args.years}y"
+    window = f"last {args.years} years"
+
+    print(f"Pulling Google Trends data for {timeframe} ({window})")
+    df = build_analysis_frame(timeframe)
     report_regression(df)
-    plot_regression(df)
-    plot_boxplot(df)
-    plot_state_bar_chart(df)
-    print("\nSaved plots: regression_plot.png, boxplot.png, state_bar_chart.png")
+    plot_regression(df, suffix, window)
+    plot_boxplot(df, suffix, window)
+    plot_state_bar_chart(df, suffix, window)
+    print(f"\nSaved plots: regression_plot_{suffix}.png, boxplot_{suffix}.png, state_bar_chart_{suffix}.png")
 
 
 if __name__ == "__main__":
