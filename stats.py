@@ -27,7 +27,7 @@ except Exception:
     pass
 
 
-KEYWORDS = ["shemale", "tranny", "femboy"]
+KEYWORDS = ["shemale porn", "tranny porn" , "femboy porn"]
 
 
 def normalize_state_name(value):
