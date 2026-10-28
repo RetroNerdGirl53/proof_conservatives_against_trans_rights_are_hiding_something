@@ -11,7 +11,7 @@ others i have seen on the same topic, but they used closed data like that from p
 some level or another with open and readily accessible data and code. 
 
 Disclosures on dumbass shit i did:
-apparently somehow i lost the "porn" part of the search term in *trans slur here* porn. I added it back to the code and the visuals are strikingly similar. That tells a whole other story about how we are seen by people who use these slurs.
+apparently somehow i lost the "porn" part of the search term in *trans slur here* porn. I added it back to the code and the visuals are strikingly similar. That tells a whole other story about how we are seen by people who use these slurs. Lesson learned - review your ai generated changes before you push them to the repo.
 
 The Future Of This Project:
 I have requested more specific data from some of
